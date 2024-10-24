@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      overflow: hidden;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+
+    #canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      background: #1a1a1a;
+    }
+
+    #controls-panel {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 250px;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.75);
+      color: white;
+      padding: 20px;
+      box-sizing: border-box;
+      z-index: 3;  /* Changed to be above canvas but below start screen */
+      backdrop-filter: blur(8px);
+      transition: opacity 0.3s ease;
+    }
+
+    .control-group {
+      margin-bottom: 24px;
+    }
+
+    .control-title {
+      font-size: 1.2em;
+      font-weight: bold;
+      margin-bottom: 12px;
+      color: #7dd3fc;
+    }
+
+    .control-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      padding: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+    }
+
+    .key {
+      background: rgba(255, 255, 255, 0.2);
+      padding: 4px 12px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-weight: bold;
+    }
+
+    #start-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 4;  /* Highest z-index for the dark overlay */
+      pointer-events: none;  /* Let clicks through to the button */
+    }
+
+    #start-screen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 5;  /* Above the dark overlay */
+      transition: opacity 0.3s ease;
+    }
+
+    #start-button {
+      padding: 16px 32px;
+      font-size: 24px;
+      background: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: transform 0.2s ease, background-color 0.2s ease;
+    }
+
+    #start-button:hover {
+      background: #2563eb;
+      transform: scale(1.05);
+    }
+
+    .hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    #esc-hint {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      color: white;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 8px 16px;
+      border-radius: 4px;
+      z-index: 3;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+  
+  <div id="start-overlay"></div>
+  <div id="start-screen">
+    <button id="start-button">Start Flight</button>
+  </div>
+
+  <div id="controls-panel">
+    <div class="control-group">
+      <div class="control-title">Flight Controls</div>
+      <div class="control-item">
+        <span>Pitch Up</span>
+        <span class="key">W</span>
+      </div>
+      <div class="control-item">
+        <span>Pitch Down</span>
+        <span class="key">S</span>
+      </div>
+      <div class="control-item">
+        <span>Roll Left</span>
+        <span class="key">A</span>
+      </div>
+      <div class="control-item">
+        <span>Roll Right</span>
+        <span class="key">D</span>
+      </div>
+    </div>
+
+    <div class="control-group">
+      <div class="control-title">Throttle</div>
+      <div class="control-item">
+        <span>Increase</span>
+        <span class="key">Q</span>
+      </div>
+      <div class="control-item">
+        <span>Decrease</span>
+        <span class="key">E</span>
+      </div>
+    </div>
+
+    <div class="control-group">
+      <div class="control-title">System</div>
+      <div class="control-item">
+        <span>Toggle UI</span>
+        <span class="key">ESC</span>
+      </div>
+    </div>
+  </div>
+
+  <div id="esc-hint">Press ESC to show controls</div>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const startScreen = document.getElementById('start-screen');
+    const startOverlay = document.getElementById('start-overlay');
+    const startButton = document.getElementById('start-button');
+    const controlsPanel = document.getElementById('controls-panel');
+    const escHint = document.getElementById('esc-hint');
+    let isGameStarted = false;
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    const squares = Array(50).fill().map(() => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      size: Math.random() * 40 + 10,
+      speed: Math.random() * 2 + 1,
+      color: `hsl(${Math.random() * 60 + 100}, 50%, 50%)`
+    }));
+
+    const plane = {
+      x: canvas.width / 2,
+      y: canvas.height / 2,
+      size: 20,
+      color: '#ffffff'
+    };
+
+    function draw() {
+      ctx.fillStyle = '#1a1a1a';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      squares.forEach(square => {
+        ctx.fillStyle = square.color;
+        ctx.fillRect(square.x, square.y, square.size, square.size);
+        
+        if (isGameStarted) {
+          square.y -= square.speed;
+        }
+        
+        if (square.y + square.size < 0) {
+          square.y = canvas.height;
+          square.x = Math.random() * canvas.width;
+        }
+      });
+
+      ctx.fillStyle = plane.color;
+      ctx.beginPath();
+      ctx.moveTo(plane.x, plane.y - plane.size);
+      ctx.lineTo(plane.x + plane.size, plane.y + plane.size);
+      ctx.lineTo(plane.x - plane.size, plane.y + plane.size);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.strokeStyle = '#666666';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(0, canvas.height / 2);
+      ctx.lineTo(canvas.width, canvas.height / 2);
+      ctx.stroke();
+
+      requestAnimationFrame(draw);
+    }
+
+    startButton.addEventListener('click', () => {
+      isGameStarted = true;
+      startScreen.classList.add('hidden');
+      startOverlay.classList.add('hidden');
+      controlsPanel.classList.add('hidden');
+      escHint.style.opacity = '1';
+      setTimeout(() => {
+        escHint.style.opacity = '0';
+      }, 3000);
+    });
+
+    let isUIVisible = true;
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && isGameStarted) {
+        isUIVisible = !isUIVisible;
+        if (isUIVisible) {
+          controlsPanel.classList.remove('hidden');
+          escHint.style.opacity = '0';
+        } else {
+          controlsPanel.classList.add('hidden');
+          escHint.style.opacity = '1';
+          setTimeout(() => {
+            escHint.style.opacity = '0';
+          }, 3000);
+        }
+      }
+    });
+
+    draw();
+  </script>
+</body>
+</html>

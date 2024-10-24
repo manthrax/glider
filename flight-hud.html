@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    /* This will be merged with main styles later */
+    .hud-container {
+      position: fixed;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      font-family: 'Monaco', monospace;
+      color: #7dd3fc;
+      text-shadow: 0 0 10px rgba(125, 211, 252, 0.5);
+    }
+
+    .instrument {
+      position: absolute;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid #7dd3fc;
+      border-radius: 4px;
+      padding: 10px;
+      box-shadow: 0 0 10px rgba(125, 211, 252, 0.2);
+    }
+
+    .throttle-indicator {
+      left: 20px;
+      bottom: 20px;
+      width: 40px;
+      height: 200px;
+    }
+
+    .throttle-bar {
+      position: absolute;
+      bottom: 0;
+      left: 5px;
+      width: 30px;
+      background: #7dd3fc;
+      transition: height 0.2s ease;
+    }
+
+    .throttle-label {
+      position: absolute;
+      top: -25px;
+      width: 100%;
+      text-align: center;
+    }
+
+    .speed-altitude {
+      right: 20px;
+      bottom: 20px;
+      padding: 15px;
+    }
+
+    .speed-altitude div {
+      margin: 5px 0;
+    }
+
+    .center-reticle {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 100px;
+      height: 100px;
+    }
+
+    .horizon-bar {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 400px;
+      height: 2px;
+      background: #7dd3fc;
+    }
+
+    .objectives-panel {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      max-width: 300px;
+    }
+
+    .objective {
+      margin: 5px 0;
+      padding: 5px;
+    }
+
+    .objective.completed {
+      opacity: 0.5;
+      text-decoration: line-through;
+    }
+
+    .heading-indicator {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 200px;
+      text-align: center;
+    }
+
+    /* Compass tape style heading */
+    .compass-tape {
+      position: relative;
+      height: 30px;
+      overflow: hidden;
+      margin-top: 5px;
+      border: 1px solid #7dd3fc;
+      border-radius: 4px;
+    }
+
+    .compass-numbers {
+      position: absolute;
+      width: 720px; /* 360 * 2 degrees */
+      height: 100%;
+      transition: transform 0.2s ease;
+    }
+
+    .compass-marker {
+      position: absolute;
+      left: 50%;
+      top: 0;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-top: 5px solid #7dd3fc;
+    }
+  </style>
+</head>
+<body>
+  <!-- Demo container just for preview -->
+  <div style="width: 100vw; height: 100vh; background: #1a1a1a;">
+    
+    <div class="hud-container">
+      <!-- Center reticle and horizon -->
+      <div class="center-reticle">
+        <div class="horizon-bar"></div>
+        <svg width="100" height="100" viewBox="0 0 100 100">
+          <circle cx="50" cy="50" r="30" fill="none" stroke="#7dd3fc" stroke-width="1"/>
+          <line x1="20" y1="50" x2="40" y2="50" stroke="#7dd3fc" stroke-width="1"/>
+          <line x1="60" y1="50" x2="80" y2="50" stroke="#7dd3fc" stroke-width="1"/>
+          <line x1="50" y1="20" x2="50" y2="40" stroke="#7dd3fc" stroke-width="1"/>
+          <line x1="50" y1="60" x2="50" y2="80" stroke="#7dd3fc" stroke-width="1"/>
+        </svg>
+      </div>
+
+      <!-- Heading indicator -->
+      <div class="heading-indicator">
+        <div>HEADING</div>
+        <div class="compass-tape">
+          <div class="compass-numbers" id="compass-numbers"></div>
+          <div class="compass-marker"></div>
+        </div>
+      </div>
+
+      <!-- Throttle -->
+      <div class="instrument throttle-indicator">
+        <div class="throttle-label">THR</div>
+        <div class="throttle-bar" id="throttle-bar" style="height: 50%;"></div>
+      </div>
+
+      <!-- Speed and Altitude -->
+      <div class="instrument speed-altitude">
+        <div>SPD: <span id="speed">0</span> KTS</div>
+        <div>ALT: <span id="altitude">1000</span> FT</div>
+        <div>VSI: <span id="vsi">0</span> FT/M</div>
+      </div>
+
+      <!-- Objectives -->
+      <div class="instrument objectives-panel">
+        <div style="margin-bottom: 10px;">OBJECTIVES</div>
+        <div class="objective">□ Reach 5000 ft altitude</div>
+        <div class="objective">□ Achieve 200 KTS airspeed</div>
+        <div class="objective completed">☒ Complete basic training</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Demo functionality
+    let throttle = 50;
+    let speed = 0;
+    let altitude = 1000;
+    let heading = 0;
+
+    // Initialize compass tape
+    const compassNumbers = document.getElementById('compass-numbers');
+    let compassHtml = '';
+    for (let i = 0; i < 720; i++) {
+      if (i % 30 === 0) {
+        compassHtml += `<div style="position: absolute; left: ${i}px; width: 30px; text-align: center;">${(i/2).toFixed(0).padStart(3, '0')}°</div>`;
+      }
+    }
+    compassNumbers.innerHTML = compassHtml;
+    compassNumbers.style.transform = `translateX(-${heading * 2}px)`;
+
+    // Update displays
+    function updateHUD() {
+      // Update throttle
+      document.getElementById('throttle-bar').style.height = `${throttle}%`;
+      
+      // Update speed (with smoothing)
+      speed = Math.max(0, speed + (throttle - 50) / 10);
+      document.getElementById('speed').textContent = Math.floor(speed);
+      
+      // Update altitude based on pitch (demo only)
+      altitude += (throttle - 50) / 5;
+      document.getElementById('altitude').textContent = Math.floor(altitude);
+      
+      // Update heading (demo rotation)
+      heading = (heading + 1) % 360;
+      compassNumbers.style.transform = `translateX(-${heading * 2}px)`;
+      
+      // Update VSI (vertical speed indicator)
+      document.getElementById('vsi').textContent = Math.floor((throttle - 50) * 10);
+    }
+
+    // Demo controls
+    document.addEventListener('keydown', (e) => {
+      switch(e.key.toLowerCase()) {
+        case 'q':
+          throttle = Math.min(100, throttle + 5);
+          break;
+        case 'e':
+          throttle = Math.max(0, throttle - 5);
+          break;
+      }
+    });
+
+    setInterval(updateHUD, 50);
+  </script>
+</body>
+</html>

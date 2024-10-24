@@ -1,0 +1,383 @@
+/******************************************************************************
+START Glitch hello-app default styles
+
+The styles in this section do some minimal CSS resets, set default fonts and 
+colors, and handle the layout for our footer and "Remix on Glitch" button. If
+you're new to CSS they may seem a little complicated, but you can scroll down
+to this section's matching END comment to see page-specific styles.
+******************************************************************************/
+
+
+/* 
+  The style rules specify elements by type and by attributes such as class and ID
+  Each section indicates an element or elements, then lists the style properties to apply
+  See if you can cross-reference the rules in this file with the elements in index.html
+*/
+
+/* Our default values set as CSS variables */
+:root {
+  --color-bg: #69F7BE;
+  --color-text-main: #000000;
+  --color-primary: #FFFF00;
+  --wrapper-height: 87vh;
+  --image-max-width: 300px;
+  --image-margin: 0rem;
+  --font-family: "HK Grotesk";
+  --font-family-header: "HK Grotesk";
+}
+
+/* Basic page style resets */
+* {
+  box-sizing: border-box;
+  /* background: #1a1a1a00; */
+}
+[hidden] {
+  display: none !important;
+}
+
+body {
+  font-family: Arial;
+  background: #000000;
+  padding:0px;
+  margin:0px;
+  overflow:hidden;
+  align-items: flex-end; /* Aligns the tray to the bottom of the page */
+  justify-content: center; /* Centers content horizontally */
+}
+
+
+#expression{
+  text-shadow: 0px 0px 3px white;
+  color:black;
+  position:absolute;
+  left:0%;
+  top:0%;
+  z-index:10;
+  FFtransform: translate(-50%, -5%);
+  display:block;
+  padding:3px;
+  opacity:.5;
+}
+
+
+.dice-tray {
+    position:absolute;
+    bottom:0px;
+    z-index:5;
+    width: 100%;
+    display: flex;
+    justify-content: space-around; /* Distributes the spots evenly */
+    padding: 10px 0;
+    background-color: rgb(255 255 255 / 0%); /* Semi-transparent background */
+    pointer-events:none;
+}
+
+.dice-spot {
+    width: 100pt; /* Width and height are equal to make squares */
+    height: 100pt; /* Same as width to ensure square spots */
+
+    border: 2px dotted #000; /* Dotted outline */
+    margin: 0 5px;
+    background-color: #00000000; /* Transparent background */
+    pointer-events:none;
+}
+
+
+#popup-container {
+    display: flex;
+    justify-content: center; /* Centers horizontally */
+    align-items: center;     /* Centers vertically */
+    height: 100%;
+  width:100%;
+cursor:pointer;
+  color:white;
+  background:rgba(0,0,0,.25);
+  position:absolute;
+  pointer-events: none;
+  font-size:9pt;
+}
+
+#popup{
+    width: 300px;
+    height: 200px;
+    background-color: lightblue;
+    text-align: center;
+    line-height: 200px; /* Centers text vertically */
+  cursor:pointer;
+  color:white;
+  background:rgba(0,0,0,.25);
+  font-size:9pt;
+}
+
+/* Fade-in and fade-out animations */
+.fade-in {
+  animation: fadeIn 0.5s forwards;
+}
+
+.fade-out {
+  animation: fadeOut 0.5s forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* This will be merged with main styles later */
+.hud-container {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  font-family: 'Monaco', monospace;
+  color: #7dd3fc;
+  text-shadow: 0 0 10px rgba(125, 211, 252, 0.5);
+}
+
+.instrument {
+  position: absolute;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid #7dd3fc;
+  border-radius: 4px;
+  padding: 10px;
+  box-shadow: 0 0 10px rgba(125, 211, 252, 0.2);
+}
+
+.throttle-indicator {
+  left: 20px;
+  bottom: 20px;
+  width: 40px;
+  height: 200px;
+}
+
+.throttle-bar {
+  position: absolute;
+  bottom: 0;
+  left: 5px;
+  width: 30px;
+  background: #7dd3fc;
+  transition: height 0.2s ease;
+}
+
+.throttle-label {
+  position: absolute;
+  top: -25px;
+  width: 100%;
+  text-align: center;
+}
+
+.speed-altitude {
+  right: 20px;
+  bottom: 20px;
+  padding: 15px;
+}
+
+.speed-altitude div {
+  margin: 5px 0;
+}
+
+.center-reticle {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 100px;
+  height: 100px;
+}
+
+.horizon-bar {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 400px;
+  height: 2px;
+  background: #7dd3fc;
+}
+
+.objectives-panel {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  max-width: 300px;
+}
+
+.objective {
+  margin: 5px 0;
+  padding: 5px;
+}
+
+.objective.completed {
+  opacity: 0.5;
+  text-decoration: line-through;
+}
+
+.heading-indicator {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 200px;
+  text-align: center;
+}
+
+/* Compass tape style heading */
+.compass-tape {
+  position: relative;
+  height: 30px;
+  overflow: hidden;
+  margin-top: 5px;
+  border: 1px solid #7dd3fc;
+  border-radius: 4px;
+}
+
+.compass-numbers {
+  position: absolute;
+  width: 720px; /* 360 * 2 degrees */
+  height: 100%;
+  transition: transform 0.2s ease;
+}
+
+.compass-marker {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 5px solid #7dd3fc;
+}
+
+
+
+
+#controls-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 250px;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.75);
+  color: white;
+  padding: 20px;
+  box-sizing: border-box;
+  z-index: 3;  /* Changed to be above canvas but below start screen */
+  backdrop-filter: blur(8px);
+  transition: opacity 0.3s ease;
+}
+
+.control-group {
+  margin-bottom: 24px;
+}
+
+.control-title {
+  font-size: 1.2em;
+  font-weight: bold;
+  margin-bottom: 12px;
+  color: #7dd3fc;
+}
+
+.control-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.key {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-weight: bold;
+}
+
+#start-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 4;  /* Highest z-index for the dark overlay */
+  pointer-events: none;  /* Let clicks through to the button */
+}
+
+#start-screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 5;  /* Above the dark overlay */
+  transition: opacity 0.3s ease;
+}
+
+#start-button {
+  padding: 16px 32px;
+  font-size: 24px;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+#start-button:hover {
+  background: #2563eb;
+  transform: scale(1.05);
+}
+
+.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+#esc-hint {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  color: white;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 8px 16px;
+  border-radius: 4px;
+  z-index: 3;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+
+canvas{
+  position:absolute;
+  left:0px;
+  top:0px;
+  z-index:-1;
+}
