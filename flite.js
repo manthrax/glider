@@ -186,6 +186,19 @@ document.addEventListener('keyup',keyup);
             p.body.applyLocalImpulse(tailImpulse,v1.set(0,0,-1))
             
         }
+                
+        document.addEventListener('hud-update',(e)=>{
+            let p = planes[0];
+            let hue = e.detail;
+            hue.throttle = p.throttle
+            
+            let v = p.body.velocity;
+            v0.set(0,0,.01);
+            hue.throttle = hue.speed =  abs(v0.dot(v))*100.
+            v2.copy(az).applyQuaternion(p.body.quaternion);
+            let ang = 180+(Math.atan(v2.x,v2.z)*360/(Math.PI*2));
+            hue.heading = ang;
+        })
         
         events.frame = (dt) => {
             let time = performance.now() / 1000;

@@ -1,222 +1,283 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <link rel="stylesheet" href="./style.css" />
-    <script type="importmap">
-    {
-        "imports": {
-            "three": "./lib/three.module.js",
-            "three/addons/": "./lib/"
-        }
-    }
-    </script>
-    <script type="module" src="./main.js" defer></script>
-  </head>
-  <body>
-    <span id="expression" contenteditable="true" style="cursor:pointer;" spellcheck="false">frame: 0</span>
-
-
-
-
-
-  <!-- Demo container just for preview -->
-  <div style="width: 100vw; height: 100vh; background: rgba(0,0,0,0);">
-    
-    <div class="hud-container">
-      <!-- Center reticle and horizon -->
-      <div class="center-reticle">
-        <div class="horizon-bar"></div>
-        <svg width="100" height="100" viewBox="0 0 100 100">
-          <circle cx="50" cy="50" r="30" fill="none" stroke="#7dd3fc" stroke-width="1"/>
-          <line x1="20" y1="50" x2="40" y2="50" stroke="#7dd3fc" stroke-width="1"/>
-          <line x1="60" y1="50" x2="80" y2="50" stroke="#7dd3fc" stroke-width="1"/>
-          <line x1="50" y1="20" x2="50" y2="40" stroke="#7dd3fc" stroke-width="1"/>
-          <line x1="50" y1="60" x2="50" y2="80" stroke="#7dd3fc" stroke-width="1"/>
-        </svg>
-      </div>
-
-      <!-- Heading indicator -->
-      <div class="heading-indicator">
-        <div>HEADING</div>
-        <div class="compass-tape">
-          <div class="compass-numbers" id="compass-numbers"></div>
-          <div class="compass-marker"></div>
+    <head>
+        <link rel="stylesheet" href="./style.css"/>
+        <script type="importmap">
+            {
+                "imports": {
+                    "three": "./lib/three.module.js",
+                    "three/addons/": "./lib/"
+                }}
+        </script>
+        <script type="module" src="./main.js" defer></script>
+    </head>
+    <body>
+        <span id="expression" contenteditable="true" style="cursor:pointer;" spellcheck="false">frame: 0</span>
+        <!-- Demo container just for preview -->
+        <div style="width: 100vw; height: 100vh; background: rgba(0,0,0,0);">
+            <div class="hud-container">
+                <!-- Center reticle and horizon -->
+                <div class="center-reticle">
+                    <div class="horizon-bar"></div>
+                    <svg width="100" height="100" viewBox="0 0 100 100">
+                        <circle cx="50" cy="50" r="30" fill="none" stroke="#7dd3fc" stroke-width="1"/>
+                        <line x1="20" y1="50" x2="40" y2="50" stroke="#7dd3fc" stroke-width="1"/>
+                        <line x1="60" y1="50" x2="80" y2="50" stroke="#7dd3fc" stroke-width="1"/>
+                        <line x1="50" y1="20" x2="50" y2="40" stroke="#7dd3fc" stroke-width="1"/>
+                        <line x1="50" y1="60" x2="50" y2="80" stroke="#7dd3fc" stroke-width="1"/>
+                    </svg>
+                </div>
+                <!-- Heading indicator -->
+                <div class="heading-indicator">
+                    <div>HEADING</div>
+                    <div class="compass-tape">
+                        <div class="compass-numbers" id="compass-numbers"></div>
+                        <div class="compass-marker"></div>
+                    </div>
+                </div>
+                <!-- Throttle -->
+                <div class="instrument throttle-indicator">
+                    <div class="throttle-label">THR</div>
+                    <div class="throttle-bar" id="throttle-bar" style="height: 50%;"></div>
+                </div>
+                <!-- Speed and Altitude -->
+                <div class="instrument speed-altitude">
+                    <div>
+                        SPD: <span id="speed">0</span>
+                        KTS
+                    </div>
+                    <div>
+                        ALT: <span id="altitude">1000</span>
+                        FT
+                    </div>
+                    <div>
+                        VSI: <span id="vsi">0</span>
+                        FT/M
+                    </div>
+                </div>
+                <!-- Objectives -->
+                <div class="instrument objectives-panel">
+                    <div style="margin-bottom: 10px;">OBJECTIVES</div>
+                    <div class="objective">□ Reach 5000 ft altitude</div>
+                    <div class="objective">□ Achieve 200 KTS airspeed</div>
+                    <div class="objective completed">☒ Complete basic training</div>
+                </div>
+            </div>
         </div>
-      </div>
+        <div id="start-overlay"></div>
+        <div id="start-screen">
+            <button id="start-button">Start Flight</button>
+        </div>
+        <div id="controls-panel">
+            <div class="control-group">
+                <div class="control-title">Flight Controls</div>
+                <div class="control-item">
+                    <span>Pitch Up</span>
+                    <span class="key">W</span>
+                </div>
+                <div class="control-item">
+                    <span>Pitch Down</span>
+                    <span class="key">S</span>
+                </div>
+                <div class="control-item">
+                    <span>Roll Left</span>
+                    <span class="key">A</span>
+                </div>
+                <div class="control-item">
+                    <span>Roll Right</span>
+                    <span class="key">D</span>
+                </div>
+            </div>
+            <div class="control-group">
+                <div class="control-title">Throttle</div>
+                <div class="control-item">
+                    <span>Increase</span>
+                    <span class="key">Q</span>
+                </div>
+                <div class="control-item">
+                    <span>Decrease</span>
+                    <span class="key">E</span>
+                </div>
+            </div>
+            <div class="control-group">
+                <div class="control-title">System</div>
+                <div class="control-item">
+                    <span>Toggle UI</span>
+                    <span class="key">ESC</span>
+                </div>
+            </div>
+        </div>
+        <div id="esc-hint">Press ESC to show controls</div>
+    </body>
+    <script>
+        const startScreen = document.getElementById('start-screen');
+        const startOverlay = document.getElementById('start-overlay');
+        const startButton = document.getElementById('start-button');
+        const controlsPanel = document.getElementById('controls-panel');
+        const escHint = document.getElementById('esc-hint');
+        let isGameStarted = false;
 
-      <!-- Throttle -->
-      <div class="instrument throttle-indicator">
-        <div class="throttle-label">THR</div>
-        <div class="throttle-bar" id="throttle-bar" style="height: 50%;"></div>
-      </div>
+        /*
+const squares = Array(50).fill().map(() => ({
+  x: Math.random() * canvas.width,
+  y: Math.random() * canvas.height,
+  size: Math.random() * 40 + 10,
+  speed: Math.random() * 2 + 1,
+  color: `hsl(${Math.random() * 60 + 100}, 50%, 50%)`
+}));
 
-      <!-- Speed and Altitude -->
-      <div class="instrument speed-altitude">
-        <div>SPD: <span id="speed">0</span> KTS</div>
-        <div>ALT: <span id="altitude">1000</span> FT</div>
-        <div>VSI: <span id="vsi">0</span> FT/M</div>
-      </div>
+const plane = {
+  x: canvas.width / 2,
+  y: canvas.height / 2,
+  size: 20,
+  color: '#ffffff'
+};
 
-      <!-- Objectives -->
-      <div class="instrument objectives-panel">
-        <div style="margin-bottom: 10px;">OBJECTIVES</div>
-        <div class="objective">□ Reach 5000 ft altitude</div>
-        <div class="objective">□ Achieve 200 KTS airspeed</div>
-        <div class="objective completed">☒ Complete basic training</div>
-      </div>
-    </div>
-  </div>
-      
+function draw() {
+  ctx.fillStyle = '#1a1a1a';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-
-
-
-  <div id="start-overlay"></div>
-  <div id="start-screen">
-    <button id="start-button">Start Flight</button>
-  </div>
-
-  <div id="controls-panel">
-    <div class="control-group">
-      <div class="control-title">Flight Controls</div>
-      <div class="control-item">
-        <span>Pitch Up</span>
-        <span class="key">W</span>
-      </div>
-      <div class="control-item">
-        <span>Pitch Down</span>
-        <span class="key">S</span>
-      </div>
-      <div class="control-item">
-        <span>Roll Left</span>
-        <span class="key">A</span>
-      </div>
-      <div class="control-item">
-        <span>Roll Right</span>
-        <span class="key">D</span>
-      </div>
-    </div>
-
-    <div class="control-group">
-      <div class="control-title">Throttle</div>
-      <div class="control-item">
-        <span>Increase</span>
-        <span class="key">Q</span>
-      </div>
-      <div class="control-item">
-        <span>Decrease</span>
-        <span class="key">E</span>
-      </div>
-    </div>
-
-    <div class="control-group">
-      <div class="control-title">System</div>
-      <div class="control-item">
-        <span>Toggle UI</span>
-        <span class="key">ESC</span>
-      </div>
-    </div>
-  </div>
-
-  <div id="esc-hint">Press ESC to show controls</div>
-
-  </body>
-
-  <script>
-    const startScreen = document.getElementById('start-screen');
-    const startOverlay = document.getElementById('start-overlay');
-    const startButton = document.getElementById('start-button');
-    const controlsPanel = document.getElementById('controls-panel');
-    const escHint = document.getElementById('esc-hint');
-    let isGameStarted = false;
-
-  
-/*
-    const squares = Array(50).fill().map(() => ({
-      x: Math.random() * canvas.width,
-      y: Math.random() * canvas.height,
-      size: Math.random() * 40 + 10,
-      speed: Math.random() * 2 + 1,
-      color: `hsl(${Math.random() * 60 + 100}, 50%, 50%)`
-    }));
-
-    const plane = {
-      x: canvas.width / 2,
-      y: canvas.height / 2,
-      size: 20,
-      color: '#ffffff'
-    };
-
-    function draw() {
-      ctx.fillStyle = '#1a1a1a';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      squares.forEach(square => {
-        ctx.fillStyle = square.color;
-        ctx.fillRect(square.x, square.y, square.size, square.size);
-        
-        if (isGameStarted) {
-          square.y -= square.speed;
-        }
-        
-        if (square.y + square.size < 0) {
-          square.y = canvas.height;
-          square.x = Math.random() * canvas.width;
-        }
-      });
-
-      ctx.fillStyle = plane.color;
-      ctx.beginPath();
-      ctx.moveTo(plane.x, plane.y - plane.size);
-      ctx.lineTo(plane.x + plane.size, plane.y + plane.size);
-      ctx.lineTo(plane.x - plane.size, plane.y + plane.size);
-      ctx.closePath();
-      ctx.fill();
-
-      ctx.strokeStyle = '#666666';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(0, canvas.height / 2);
-      ctx.lineTo(canvas.width, canvas.height / 2);
-      ctx.stroke();
-
-      requestAnimationFrame(draw);
-    }
-*/
-    startButton.addEventListener('click', () => {
-      isGameStarted = true;
-      startScreen.classList.add('hidden');
-      startOverlay.classList.add('hidden');
-      controlsPanel.classList.add('hidden');
-      escHint.style.opacity = '1';
-      setTimeout(() => {
-        escHint.style.opacity = '0';
-      }, 3000);
-    });
-
-    let isUIVisible = true;
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && isGameStarted) {
-        isUIVisible = !isUIVisible;
-        if (isUIVisible) {
-          controlsPanel.classList.remove('hidden');
-          escHint.style.opacity = '0';
-        } else {
-          controlsPanel.classList.add('hidden');
-          escHint.style.opacity = '1';
-          setTimeout(() => {
-            escHint.style.opacity = '0';
-          }, 3000);
-        }
-      }
-    });
-
-    //draw();
-  </script>
-
-
-
-
-
+  squares.forEach(square => {
+    ctx.fillStyle = square.color;
+    ctx.fillRect(square.x, square.y, square.size, square.size);
     
+    if (isGameStarted) {
+      square.y -= square.speed;
+    }
+    
+    if (square.y + square.size < 0) {
+      square.y = canvas.height;
+      square.x = Math.random() * canvas.width;
+    }
+  });
+
+  ctx.fillStyle = plane.color;
+  ctx.beginPath();
+  ctx.moveTo(plane.x, plane.y - plane.size);
+  ctx.lineTo(plane.x + plane.size, plane.y + plane.size);
+  ctx.lineTo(plane.x - plane.size, plane.y + plane.size);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.strokeStyle = '#666666';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(0, canvas.height / 2);
+  ctx.lineTo(canvas.width, canvas.height / 2);
+  ctx.stroke();
+
+  requestAnimationFrame(draw);
+}
+*/
+        startButton.addEventListener('click', () => {
+            isGameStarted = true;
+            startScreen.classList.add('hidden');
+            startOverlay.classList.add('hidden');
+            controlsPanel.classList.add('hidden');
+            escHint.style.opacity = '1';
+            setTimeout( () => {
+                escHint.style.opacity = '0';
+            }
+            , 3000);
+        }
+        );
+
+        let isUIVisible = true;
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && isGameStarted) {
+                isUIVisible = !isUIVisible;
+                if (isUIVisible) {
+                    controlsPanel.classList.remove('hidden');
+                    escHint.style.opacity = '0';
+                } else {
+                    controlsPanel.classList.add('hidden');
+                    escHint.style.opacity = '1';
+                    setTimeout( () => {
+                        escHint.style.opacity = '0';
+                    }
+                    , 3000);
+                }
+            }
+        }
+        );
+
+        //draw();
+
+        //Flight hud:
+        let hudParams={
+             throttle : 0,
+             speed: 0,
+             altitude : 1000,
+             heading : 0
+        }
+        let hudUpdateEvent = new CustomEvent('hud-update',{detail:hudParams})
+
+        // Initialize compass tape
+        const compassNumbers = document.getElementById('compass-numbers');
+        let compassHtml = '';
+        for (let i = 0; i < 720; i++) {
+            if (i % 30 === 0) {
+                compassHtml += `<div style="position: absolute; left: ${i}px; width: 30px; text-align: center;">${(i / 2).toFixed(0).padStart(3, '0')}°</div>`;
+            }
+        }
+        compassNumbers.innerHTML = compassHtml;
+        compassNumbers.style.transform = `translateX(-${hudParams.heading * 2}px)`;
+
+        let keys = {}
+
+        
+        // Update displays
+        function updateHUD() {
+            // Update throttle
+            document.getElementById('throttle-bar').style.height = `${hudParams.throttle}%`;
+
+            // Update speed (with smoothing)
+            hudParams.speed = Math.max(0, hudParams.speed + (hudParams.throttle - 50) / 10);
+
+            // Update altitude based on pitch (demo only)
+            hudParams.altitude += (hudParams.throttle - 50) / 5;
+
+            // Update heading (demo rotation)
+            hudParams.heading = (hudParams.heading + 1) % 360;
+
+document.dispatchEvent(hudUpdateEvent)
+            
+            compassNumbers.style.transform = `translateX(-${hudParams.heading * 2}px)`;
+            document.getElementById('speed').textContent = Math.floor(hudParams.speed);
+            document.getElementById('altitude').textContent = Math.floor(hudParams.altitude);
+
+            // Update VSI (vertical speed indicator)
+            document.getElementById('vsi').textContent = Math.floor((hudParams.throttle - 50) * 10);
+            if (keys.throttleUp)
+                hudParams.throttle = Math.min(100, hudParams.throttle + 5);
+            if (keys.throttleDown)
+                hudParams.throttle = Math.max(0, hudParams.throttle - 5);
+
+        }
+        // Demo controls
+        document.addEventListener('keyup', (e) => {
+            switch (e.key.toLowerCase()) {
+            case 'q':
+                keys.throttleDown = false;
+                break;
+            case 'e':
+                keys.throttleUp = false;
+                break;
+            }
+        }
+        );
+        document.addEventListener('keydown', (e) => {
+            switch (e.key.toLowerCase()) {
+            case 'q':
+                keys.throttleDown = true;
+                break;
+            case 'e':
+                keys.throttleUp = true;
+                break;
+            }
+        }
+        );
+
+        setInterval(updateHUD, 50);
+    </script>
 </html>
