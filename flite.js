@@ -77,10 +77,11 @@ document.addEventListener('keyup',keyup);
         let ground = new Obj(mesh,body);
     }    
     makeGround();
-    
+    let waypoints = new Waypoints(THREE,scene);
     this.init = async () => {
         const mass = 1;
         const sleepTimeLimit = .02;
+        
 
         /*
         
@@ -216,7 +217,7 @@ document.addEventListener('keyup',keyup);
                     //simulation.fixedStep(undefined, 10);
                     simulation.step(frameInterval,frameInterval, 3);
                     frameNumber++;
-                    if(i>150){
+                    if(i>1000){
                      console.log("phys underflow:",elapsedFrames)
                         frameTime = time;
                         break;
@@ -253,7 +254,9 @@ document.addEventListener('keyup',keyup);
                 camera.position.lerp(v0,.02);
                 camera.lookAt(planes[0].object.position);
             }
+            waypoints.update(planes[0].object.position);
         }
         planes.push(plane)
     }
 }
+import Waypoints from "./waypoints.js"
