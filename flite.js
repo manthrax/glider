@@ -64,15 +64,18 @@ document.addEventListener('keydown',keydown);
 document.addEventListener('keyup',keyup);
 
     let makeGround=()=>{
+        let gx = 1000;
+        let gy = 1;
+        let gz = 500;
         const body = new CANNON.Body({
             type: CANNON.Body.STATIC,
-            shape: new CANNON.Box(new CANNON.Vec3(200,1,100)),
+            shape: new CANNON.Box(new CANNON.Vec3(gx,gy,gz)),
         });
         body.position.y = -5;
         //body.quaternion.setFromEuler(-.5 * PI, 0, 0);
         let tex = new THREE.TextureLoader().load("./assets/airfield.jpg")
         tex.colorSpace = 'srgb'
-        let mesh = new THREE.Mesh(new THREE.BoxGeometry(400,2,200),new THREE.MeshStandardMaterial({color:'#ffffff',map:tex}));
+        let mesh = new THREE.Mesh(new THREE.BoxGeometry(gx*2,gy*2,gz*2),new THREE.MeshStandardMaterial({color:'#ffffff',map:tex}));
         mesh.receiveShadow = true;
         let ground = new Obj(mesh,body);
     }    
@@ -203,7 +206,8 @@ document.addEventListener('keyup',keyup);
         
         events.frame = (dt) => {
             let time = performance.now() / 1000;
-            if (time >= frameTime) {
+            if (time >= frameTime) 
+            {
                 let elapsedFrameTime = ((time - frameTime) / frameInterval);
                 let elapsedFrames = (elapsedFrameTime | 0);
                 for(let i=0;i<planes.length;i++){
@@ -250,7 +254,7 @@ document.addEventListener('keyup',keyup);
                 
                 camera.quaternion.copy(planes[0].object.quaternion);
                 camera.quaternion.multiply(tq0.setFromAxisAngle(v0.set(0,1,0),Math.PI));
-            planes[0].object.localToWorld(v0.set(0,0,-10));
+            planes[0].object.localToWorld(v0.set(0,0,-3));
                 camera.position.lerp(v0,.02);
                 camera.lookAt(planes[0].object.position);
             }
@@ -258,5 +262,44 @@ document.addEventListener('keyup',keyup);
         }
         planes.push(plane)
     }
+    initMaze(scene,Obj);
 }
 import Waypoints from "./waypoints.js"
+
+
+import *as THREE from "three"
+import CSG from "https://cdn.jsdelivr.net/gh/manthrax/THREE-CSGMesh/three-csg.js"
+
+import Maze from "./Maze.js"
+
+let initMaze=(scene,Obj)=>{
+    let m = new Maze();
+    
+    let bgm = new THREE.Mesh(new THREE.BoxGeometry(),new THREE.MeshStandardMaterial({
+        color:0x808080
+    }));
+    m.forEach(b=>{
+        let bm = bgm.clone();
+        //bm.scale.set(b[1][0]-b[0][0],b[1][1]-b[0][1],b[1][2]-b[0][2]).multiplyScalar(.5);
+        //bm.position.set(b[1][0]+b[0][0],b[1][1]+b[0][1],b[1][2]+b[0][2]).multiplyScalar(.5);
+        bm.position.set(...b[0]);
+        bm.scale.set(...b[1]);
+        bm.position.multiplyScalar(100)
+        bm.scale.multiplyScalar(100)
+
+        bm.position.y += 75;
+
+
+    let gx = bm.scale.x*.5
+    let gy = bm.scale.y*.5
+    let gz = bm.scale.z*.5
+        const body = new CANNON.Body({
+            type: CANNON.Body.STATIC,
+            shape: new CANNON.Box(new CANNON.Vec3(gx,gy,gz)),
+        });
+        body.position.copy(bm.position);
+        bm.castShadow = true;
+        bm.receiveShadow = true;
+        let wall = new Obj(bm,body);
+    })
+}

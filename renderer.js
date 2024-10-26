@@ -44,7 +44,7 @@ export function Renderer(config) {
     directionalLight.shadow.bias = -.001;
 
     directionalLight.castShadow = true;
-    directionalLight.position.set(1.5, 5, 1.5).multiplyScalar(100);
+    directionalLight.position.set(15.5, 25, 10.5).multiplyScalar(10);
 
     let ambientLight = new THREE.AmbientLight('white',1.);
     scene.add(ambientLight);
