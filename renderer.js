@@ -81,7 +81,8 @@ export function Renderer(config) {
         events.frame && events.frame(dt);
         //controls.update(camera);
         //renderer.render(scene, camera);
-        postProcessing.render(scene, camera);
+        if(this.rendering.enabled)
+            postProcessing.render(scene, camera);
     }
     );
 
@@ -140,6 +141,9 @@ export function Renderer(config) {
 
     Object.assign(this, {
         THREE,
+        rendering:{
+            enabled:false
+        },
         scene,
         camera,
         renderer,
